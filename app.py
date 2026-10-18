@@ -1,10 +1,12 @@
 
+
 import streamlit as st
 import pandas as pd
 import joblib
 
-# Load Titanic model
-saved_data = joblib.load("titanic_survival_model (1).pkl")
+# Load the Titanic model
+saved_data = joblib.load("titanic_survival_model.pkl")
+
 model = saved_data["model"]
 encoders = saved_data["encoders"]
 features = saved_data["feature_columns"]
@@ -14,7 +16,7 @@ st.set_page_config(
     page_icon="🚢"
 )
 
-st.title("🚢 Titanic Passenger Survival Prediction")
+st.title("🚢 Titanic Survival Prediction")
 st.write("Enter passenger details to predict survival.")
 
 pclass = st.selectbox(
@@ -38,6 +40,7 @@ embarked = st.selectbox(
 )
 
 if st.button("Predict Survival"):
+
     input_values = {
         "PClass": pclass,
         "Gender": gender,
@@ -45,7 +48,10 @@ if st.button("Predict Survival"):
         "Embarked": embarked
     }
 
-    input_data = pd.DataFrame([input_values], columns=features)
+    input_data = pd.DataFrame(
+        [input_values],
+        columns=features
+    )
 
     for column in features:
         input_data[column] = encoders[column].transform(
@@ -53,13 +59,16 @@ if st.button("Predict Survival"):
         )
 
     prediction = model.predict(input_data)[0]
+
     result = encoders["Survived"].inverse_transform(
         [prediction]
     )[0]
 
-    if result == "Yes":
-        st.success("Prediction: The passenger is predicted to survive! 🎉")
+    if str(result).lower() in ["yes", "1", "survived"]:
+        st.success("🎉 Prediction: Passenger is likely to survive!")
     else:
-        st.error("Prediction: The passenger is predicted not to survive.")
+        st.error("Prediction: Passenger is unlikely to survive.")
 
-st.caption("This is a machine-learning educational project.")
+st.caption(
+    "Educational project only. Predictions are not guaranteed."
+)
